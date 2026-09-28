@@ -3,9 +3,10 @@ import json
 import re
 import time
 import html
+from urllib.parse import quote_plus, urlparse, parse_qs
+
 import requests
 from bs4 import BeautifulSoup
-from urllib.parse import quote_plus, urlparse, parse_qs
 
 
 # ============================================================
@@ -15,54 +16,96 @@ from urllib.parse import quote_plus, urlparse, parse_qs
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 
-MIN_MARGIN = 5000
-RESERVE = 2000
 SEEN_FILE = "seen.json"
 
-
-# ============================================================
-# МОДЕЛИ IPHONE
-# ============================================================
+CITY = "Москва"
 
 MODELS = {
-    "iPhone 11": {"sell": 20000, "max_buy": 15000},
-    "iPhone 11 Pro": {"sell": 25000, "max_buy": 19000},
-    "iPhone 11 Pro Max": {"sell": 28000, "max_buy": 22000},
-    "iPhone 12": {"sell": 24000, "max_buy": 18000},
-    "iPhone 12 Pro": {"sell": 28000, "max_buy": 22000},
-    "iPhone 12 Pro Max": {"sell": 33000, "max_buy": 26000},
-    "iPhone 13": {"sell": 28000, "max_buy": 22000},
-    "iPhone 13 Pro": {"sell": 35000, "max_buy": 28000},
-    "iPhone 13 Pro Max": {"sell": 40000, "max_buy": 32000},
-    "iPhone 14": {"sell": 32000, "max_buy": 25000},
-    "iPhone 14 Pro": {"sell": 43000, "max_buy": 35000},
-    "iPhone 14 Pro Max": {"sell": 50000, "max_buy": 41000},
-    "iPhone 15": {"sell": 43000, "max_buy": 35000},
-    "iPhone 15 Pro": {"sell": 55000, "max_buy": 45000},
-    "iPhone 15 Pro Max": {"sell": 65000, "max_buy": 54000},
-    "iPhone 16": {"sell": 55000, "max_buy": 45000},
-    "iPhone 16 Pro": {"sell": 65000, "max_buy": 55000},
-    "iPhone 16 Pro Max": {"sell": 75000, "max_buy": 63000},
+    "iPhone 11": {
+        "max_buy": 30000,
+        "sell": 40000
+    },
+    "iPhone 11 Pro": {
+        "max_buy": 35000,
+        "sell": 48000
+    },
+    "iPhone 11 Pro Max": {
+        "max_buy": 40000,
+        "sell": 55000
+    },
+    "iPhone 12": {
+        "max_buy": 35000,
+        "sell": 48000
+    },
+    "iPhone 12 Pro": {
+        "max_buy": 45000,
+        "sell": 60000
+    },
+    "iPhone 12 Pro Max": {
+        "max_buy": 50000,
+        "sell": 70000
+    },
+    "iPhone 13": {
+        "max_buy": 45000,
+        "sell": 60000
+    },
+    "iPhone 13 Pro": {
+        "max_buy": 55000,
+        "sell": 75000
+    },
+    "iPhone 13 Pro Max": {
+        "max_buy": 65000,
+        "sell": 85000
+    },
+    "iPhone 14": {
+        "max_buy": 55000,
+        "sell": 70000
+    },
+    "iPhone 14 Pro": {
+        "max_buy": 70000,
+        "sell": 90000
+    },
+    "iPhone 14 Pro Max": {
+        "max_buy": 80000,
+        "sell": 105000
+    },
+    "iPhone 15": {
+        "max_buy": 65000,
+        "sell": 85000
+    },
+    "iPhone 15 Pro": {
+        "max_buy": 80000,
+        "sell": 105000
+    },
+    "iPhone 15 Pro Max": {
+        "max_buy": 90000,
+        "sell": 120000
+    },
+    "iPhone 16": {
+        "max_buy": 75000,
+        "sell": 95000
+    },
+    "iPhone 16 Pro": {
+        "max_buy": 95000,
+        "sell": 120000
+    },
+    "iPhone 16 Pro Max": {
+        "max_buy": 110000,
+        "sell": 140000
+    }
 }
 
+RESERVE = 5000
+MIN_MARGIN = 5000
 
-# ============================================================
-# HTTP
-# ============================================================
 
 HEADERS = {
     "User-Agent": (
-        "Mozilla/5.0 (X11; Linux x86_64) "
-        "AppleWebKit/537.36 "
-        "(KHTML, like Gecko) "
-        "Chrome/131.0 Safari/537.36"
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/140.0.0.0 Safari/537.36"
     ),
-    "Accept-Language": "ru-RU,ru;q=0.9,en;q=0.8",
-    "Accept": (
-        "text/html,application/xhtml+xml,"
-        "application/xml;q=0.9,*/*;q=0.8"
-    ),
-    "Connection": "keep-alive",
+    "Accept-Language": "ru-RU,ru;q=0.9,en;q=0.8"
 }
 
 
@@ -71,44 +114,31 @@ HEADERS = {
 # ============================================================
 
 def send_telegram(message):
-
-    if not BOT_TOKEN:
-        print("❌ BOT_TOKEN отсутствует")
+    if not BOT_TOKEN or not CHAT_ID:
+        print("❌ BOT_TOKEN или CHAT_ID отсутствует")
         return False
 
-    if not CHAT_ID:
-        print("❌ CHAT_ID отсутствует")
-        return False
-
-    url = (
-        "https://api.telegram.org/"
-        f"bot{BOT_TOKEN}/sendMessage"
-    )
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
 
     data = {
         "chat_id": CHAT_ID,
         "text": message,
         "parse_mode": "HTML",
-        "disable_web_page_preview": False,
+        "disable_web_page_preview": False
     }
 
     try:
-
         response = requests.post(
             url,
             data=data,
-            timeout=20,
+            timeout=20
         )
 
         print("Telegram:", response.status_code)
 
-        if response.status_code != 200:
-            print(response.text[:500])
-
         return response.status_code == 200
 
     except Exception as e:
-
         print("Ошибка Telegram:", e)
         return False
 
@@ -118,19 +148,16 @@ def send_telegram(message):
 # ============================================================
 
 def load_seen():
-
     try:
-
         with open(
             SEEN_FILE,
             "r",
-            encoding="utf-8",
+            encoding="utf-8"
         ) as file:
-
             data = json.load(file)
 
-            if isinstance(data, list):
-                return set(data)
+        if isinstance(data, list):
+            return set(data)
 
     except Exception:
         pass
@@ -139,26 +166,22 @@ def load_seen():
 
 
 def save_seen(seen):
-
     try:
-
         data = list(seen)[-5000:]
 
         with open(
             SEEN_FILE,
             "w",
-            encoding="utf-8",
+            encoding="utf-8"
         ) as file:
-
             json.dump(
                 data,
                 file,
                 ensure_ascii=False,
-                indent=2,
+                indent=2
             )
 
     except Exception as e:
-
         print("Ошибка seen.json:", e)
 
 
@@ -167,25 +190,14 @@ def save_seen(seen):
 # ============================================================
 
 def extract_price(text):
-
     if not text:
         return None
 
     text = text.replace("\xa0", " ")
 
     patterns = [
-
-        r"(\d{1,3}(?:[\s\u00a0]\d{3})+)"
-        r"\s*(?:₽|руб\.?|р\b)",
-
-        r"(\d{4,6})"
-        r"\s*(?:₽|руб\.?|р\b)",
-
-        r"(\d{1,3}(?:[\s\u00a0]\d{3})+)"
-        r"\s*$",
-
-        r"(\d{4,6})"
-        r"\s*$",
+        r"(\d{1,3}(?:[\s]\d{3})+)\s*(?:₽|руб\.?|р\b)",
+        r"(\d{4,6})\s*(?:₽|руб\.?|р\b)"
     ]
 
     for pattern in patterns:
@@ -193,7 +205,7 @@ def extract_price(text):
         matches = re.findall(
             pattern,
             text,
-            flags=re.IGNORECASE,
+            flags=re.IGNORECASE
         )
 
         for value in matches:
@@ -201,7 +213,7 @@ def extract_price(text):
             value = re.sub(
                 r"\s+",
                 "",
-                value,
+                value
             )
 
             try:
@@ -223,15 +235,12 @@ def extract_price(text):
 
 def detect_model(text):
 
-    if not text:
-        return None
-
     text_lower = text.lower()
 
     models = sorted(
         MODELS.keys(),
         key=len,
-        reverse=True,
+        reverse=True
     )
 
     for model in models:
@@ -243,10 +252,10 @@ def detect_model(text):
 
 
 # ============================================================
-# ССЫЛКА
+# URL
 # ============================================================
 
-def clean_result_url(url):
+def clean_url(url):
 
     if not url:
         return ""
@@ -260,7 +269,6 @@ def clean_result_url(url):
         )
 
         if "uddg" in params:
-
             if params["uddg"]:
                 url = params["uddg"][0]
 
@@ -271,178 +279,288 @@ def clean_result_url(url):
 
 
 # ============================================================
-# РАЗБОР DDG
+# ПОИСК ЧЕРЕЗ BING
 # ============================================================
 
-def parse_ddg_results(response, model):
+def search_bing(model):
 
-    soup = BeautifulSoup(
-        response.text,
-        "html.parser",
+    query = (
+        f'site:avito.ru/moskva/telefony '
+        f'"{model}"'
     )
 
-    results = []
+    url = (
+        "https://www.bing.com/search?q="
+        + quote_plus(query)
+        + "&count=20"
+    )
 
-    items = soup.select(".result")
+    print(
+        "Bing запрос:",
+        model
+    )
 
-    for item in items:
+    try:
 
-        link = item.select_one(
-            ".result__a"
+        response = requests.get(
+            url,
+            headers=HEADERS,
+            timeout=25
         )
 
-        if not link:
-            continue
-
-        title = link.get_text(
-            " ",
-            strip=True,
+        print(
+            "Bing HTTP:",
+            response.status_code
         )
 
-        snippet_element = item.select_one(
-            ".result__snippet"
+        if response.status_code != 200:
+            return []
+
+        soup = BeautifulSoup(
+            response.text,
+            "html.parser"
         )
 
-        snippet = ""
+        results = []
 
-        if snippet_element:
+        for item in soup.select("li.b_algo"):
 
-            snippet = snippet_element.get_text(
+            link = item.select_one("h2 a")
+
+            if not link:
+                continue
+
+            title = link.get_text(
                 " ",
-                strip=True,
+                strip=True
             )
 
-        result_url = clean_result_url(
-            link.get("href", "")
+            result_url = clean_url(
+                link.get("href", "")
+            )
+
+            if "avito.ru" not in result_url:
+                continue
+
+            if "/moskva/" not in result_url:
+                continue
+
+            snippet = item.select_one(
+                ".b_caption"
+            )
+
+            snippet_text = ""
+
+            if snippet:
+                snippet_text = snippet.get_text(
+                    " ",
+                    strip=True
+                )
+
+            full_text = (
+                title
+                + " "
+                + snippet_text
+            )
+
+            price = extract_price(
+                full_text
+            )
+
+            detected_model = detect_model(
+                full_text
+            )
+
+            if not detected_model:
+                detected_model = model
+
+            results.append(
+                {
+                    "model": detected_model,
+                    "title": title,
+                    "price": price,
+                    "url": result_url
+                }
+            )
+
+        return results[:20]
+
+    except Exception as e:
+
+        print(
+            "Ошибка Bing:",
+            e
         )
 
-        if "avito.ru" not in result_url.lower():
-            continue
+        return []
 
-        full_text = (
-            title
-            + " "
-            + snippet
+
+# ============================================================
+# ЗАПАСНОЙ ПОИСК — YANDEX
+# ============================================================
+
+def search_yandex(model):
+
+    query = (
+        f'site:avito.ru/moskva/telefony '
+        f'"{model}"'
+    )
+
+    url = (
+        "https://yandex.ru/search/?text="
+        + quote_plus(query)
+    )
+
+    print(
+        "Yandex запрос:",
+        model
+    )
+
+    try:
+
+        response = requests.get(
+            url,
+            headers=HEADERS,
+            timeout=25
         )
 
-        price = extract_price(
-            full_text
+        print(
+            "Yandex HTTP:",
+            response.status_code
         )
 
-        if not price:
-            continue
+        if response.status_code != 200:
+            return []
 
-        detected_model = detect_model(
-            full_text
+        soup = BeautifulSoup(
+            response.text,
+            "html.parser"
         )
 
-        if not detected_model:
-            detected_model = model
+        results = []
 
-        results.append({
-            "model": detected_model,
-            "title": title,
-            "price": price,
-            "url": result_url,
-        })
+        for item in soup.select(
+            "li.serp-item"
+        ):
+
+            link = item.select_one(
+                "a"
+            )
+
+            if not link:
+                continue
+
+            result_url = clean_url(
+                link.get("href", "")
+            )
+
+            if "avito.ru" not in result_url:
+                continue
+
+            title_node = item.select_one(
+                "h2"
+            )
+
+            if not title_node:
+                continue
+
+            title = title_node.get_text(
+                " ",
+                strip=True
+            )
+
+            full_text = item.get_text(
+                " ",
+                strip=True
+            )
+
+            price = extract_price(
+                full_text
+            )
+
+            detected_model = detect_model(
+                full_text
+            )
+
+            if not detected_model:
+                detected_model = model
+
+            results.append(
+                {
+                    "model": detected_model,
+                    "title": title,
+                    "price": price,
+                    "url": result_url
+                }
+            )
+
+        return results[:20]
+
+    except Exception as e:
+
+        print(
+            "Ошибка Yandex:",
+            e
+        )
+
+        return []
+
+
+# ============================================================
+# ПОИСК
+# ============================================================
+
+def search_listings(model):
+
+    results = search_bing(model)
+
+    if results:
+        return results
+
+    print(
+        "Bing результатов нет."
+    )
+
+    results = search_yandex(model)
 
     return results
 
 
 # ============================================================
-# ПОИСК DDG
-# ============================================================
-
-def search_duckduckgo(model):
-
-    query = (
-        f'site:avito.ru '
-        f'"{model}" '
-        f'Москва '
-        f'телефон'
-    )
-
-    search_urls = [
-
-        (
-            "https://html.duckduckgo.com/html/?q="
-            + quote_plus(query)
-        ),
-
-        (
-            "https://lite.duckduckgo.com/lite/?q="
-            + quote_plus(query)
-        ),
-    ]
-
-    for url in search_urls:
-
-        try:
-
-            response = requests.get(
-                url,
-                headers=HEADERS,
-                timeout=25,
-            )
-
-            print(
-                model,
-                "DDG HTTP:",
-                response.status_code,
-            )
-
-            if response.status_code != 200:
-                continue
-
-            results = parse_ddg_results(
-                response,
-                model,
-            )
-
-            if results:
-
-                print(
-                    "   Найдено:",
-                    len(results),
-                )
-
-                return results[:10]
-
-        except Exception as e:
-
-            print(
-                "Ошибка поиска:",
-                e,
-            )
-
-    return []
-
-
-# ============================================================
-# РАСЧЁТ
+# ПРОВЕРКА СДЕЛКИ
 # ============================================================
 
 def calculate_deal(item):
 
-    model = item["model"]
+    model = item.get(
+        "model"
+    )
+
+    price = item.get(
+        "price"
+    )
+
+    if not model:
+        return None
+
+    if not price:
+        return None
 
     if model not in MODELS:
         return None
 
     settings = MODELS[model]
 
-    buy_price = item["price"]
+    max_buy = settings["max_buy"]
 
     sell_price = settings["sell"]
 
-    max_buy = settings["max_buy"]
-
-    if buy_price > max_buy:
+    if price > max_buy:
         return None
 
     margin = (
         sell_price
-        - buy_price
+        - price
         - RESERVE
     )
 
@@ -452,11 +570,11 @@ def calculate_deal(item):
     return {
         "model": model,
         "title": item["title"],
-        "buy": buy_price,
+        "buy": price,
         "sell": sell_price,
         "reserve": RESERVE,
         "margin": margin,
-        "url": item["url"],
+        "url": item["url"]
     }
 
 
@@ -468,8 +586,10 @@ def make_message(deal):
 
     if deal["margin"] >= 10000:
         icon = "🔥"
+
     elif deal["margin"] >= 7000:
         icon = "🟢"
+
     else:
         icon = "🟡"
 
@@ -479,17 +599,14 @@ def make_message(deal):
 
     url = html.escape(
         deal["url"],
-        quote=True,
+        quote=True
     )
 
     message = (
-
         f"{icon} "
         f"<b>ВЫГОДНОЕ ОБЪЯВЛЕНИЕ</b>\n\n"
 
-        f"📱 <b>"
-        f"{html.escape(deal['model'])}"
-        f"</b>\n\n"
+        f"📱 <b>{html.escape(deal['model'])}</b>\n\n"
 
         f"📝 {title}\n\n"
 
@@ -503,72 +620,79 @@ def make_message(deal):
         f"<b>{deal['reserve']:,} ₽</b>\n\n"
 
         f"💵 <b>ЗАЗОР: "
-        f"{deal['margin']:,} ₽"
-        f"</b>\n\n"
+        f"{deal['margin']:,} ₽</b>\n\n"
 
         f"📍 Москва\n\n"
 
-        f"🔗 <a href=\"{url}\">"
+        f"🔗 "
+        f'<a href="{url}">'
         f"ОТКРЫТЬ ОБЪЯВЛЕНИЕ"
         f"</a>"
     )
 
-    return message.replace(",", " ")
+    return message.replace(
+        ",",
+        " "
+    )
 
 
 # ============================================================
-# ОСНОВНАЯ ФУНКЦИЯ
+# MAIN
 # ============================================================
 
 def main():
 
     print("=" * 50)
 
-    print("AVITO PHONE MONITOR")
+    print(
+        "AVITO PHONE MONITOR"
+    )
 
-    print("Москва")
+    print(
+        "Москва"
+    )
 
-    print("Поиск через поисковую выдачу")
+    print(
+        "Поиск: Bing → Yandex"
+    )
 
     print("=" * 50)
 
     if not BOT_TOKEN:
 
-        print("❌ BOT_TOKEN отсутствует")
+        print(
+            "❌ BOT_TOKEN отсутствует"
+        )
+
         return
 
     if not CHAT_ID:
 
-        print("❌ CHAT_ID отсутствует")
+        print(
+            "❌ CHAT_ID отсутствует"
+        )
+
         return
 
-    # --------------------------------------------------------
-    # TELEGRAM TEST
-    # --------------------------------------------------------
-
     started = send_telegram(
-
         "🤖 <b>Avito Monitor запущен!</b>\n\n"
-
         "📍 Москва\n"
-
         "📱 iPhone 11–16 Pro Max\n"
-
-        "🔎 Проверяю объявления...\n\n"
-
-        "💰 Ищу выгодные варианты."
+        "🔎 Новый поиск\n"
+        "💰 Проверяю выгодные объявления..."
     )
 
     if not started:
 
-        print("❌ Telegram не работает")
+        print(
+            "❌ Telegram не работает"
+        )
+
         return
 
-    print("✅ Telegram работает")
-
-    # --------------------------------------------------------
-    # SEEN
-    # --------------------------------------------------------
+    print(
+        "✅ Telegram работает"
+    )
 
     seen = load_seen()
 
@@ -576,33 +700,31 @@ def main():
 
     profitable = 0
 
-    # --------------------------------------------------------
-    # ПОИСК
-    # --------------------------------------------------------
-
     for model in MODELS:
 
         print()
 
         print(
             "🔎 Проверяю:",
-            model,
+            model
         )
 
-        listings = search_duckduckgo(
+        listings = search_listings(
             model
         )
 
         print(
             "   Результатов:",
-            len(listings),
+            len(listings)
         )
 
         for item in listings:
 
             total += 1
 
-            listing_id = item["url"]
+            listing_id = item.get(
+                "url"
+            )
 
             if not listing_id:
                 continue
@@ -631,22 +753,17 @@ def main():
 
             print(
                 "Модель:",
-                deal["model"],
+                deal["model"]
             )
 
             print(
                 "Покупка:",
-                deal["buy"],
-            )
-
-            print(
-                "Продажа:",
-                deal["sell"],
+                deal["buy"]
             )
 
             print(
                 "Зазор:",
-                deal["margin"],
+                deal["margin"]
             )
 
             send_telegram(
@@ -655,55 +772,37 @@ def main():
 
             time.sleep(1)
 
-        time.sleep(2)
-
-    # --------------------------------------------------------
-    # СОХРАНЕНИЕ
-    # --------------------------------------------------------
-
     save_seen(
         seen
     )
-
-    # --------------------------------------------------------
-    # ИТОГ
-    # --------------------------------------------------------
 
     print()
 
     print("=" * 50)
 
-    print("ПРОВЕРКА ЗАВЕРШЕНА")
+    print(
+        "ПРОВЕРКА ЗАВЕРШЕНА"
+    )
 
     print(
         "Результатов:",
-        total,
+        total
     )
 
     print(
         "Выгодных:",
-        profitable,
+        profitable
     )
 
     print("=" * 50)
 
     send_telegram(
-
         "✅ <b>Проверка завершена</b>\n\n"
-
-        f"📱 Результатов: "
-        f"<b>{total}</b>\n"
-
-        f"🔥 Выгодных: "
-        f"<b>{profitable}</b>\n\n"
-
+        f"📱 Результатов: <b>{total}</b>\n"
+        f"🔥 Выгодных: <b>{profitable}</b>\n\n"
         "📍 Москва"
     )
 
-
-# ============================================================
-# ЗАПУСК
-# ============================================================
 
 if __name__ == "__main__":
     main()
