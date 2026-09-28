@@ -25,95 +25,24 @@ SEEN_FILE = "seen.json"
 # ============================================================
 
 MODELS = {
-    "iPhone 11": {
-        "sell": 20000,
-        "max_buy": 15000
-    },
-
-    "iPhone 11 Pro": {
-        "sell": 25000,
-        "max_buy": 19000
-    },
-
-    "iPhone 11 Pro Max": {
-        "sell": 28000,
-        "max_buy": 22000
-    },
-
-    "iPhone 12": {
-        "sell": 24000,
-        "max_buy": 18000
-    },
-
-    "iPhone 12 Pro": {
-        "sell": 28000,
-        "max_buy": 22000
-    },
-
-    "iPhone 12 Pro Max": {
-        "sell": 33000,
-        "max_buy": 26000
-    },
-
-    "iPhone 13": {
-        "sell": 28000,
-        "max_buy": 22000
-    },
-
-    "iPhone 13 Pro": {
-        "sell": 35000,
-        "max_buy": 28000
-    },
-
-    "iPhone 13 Pro Max": {
-        "sell": 40000,
-        "max_buy": 32000
-    },
-
-    "iPhone 14": {
-        "sell": 32000,
-        "max_buy": 25000
-    },
-
-    "iPhone 14 Pro": {
-        "sell": 43000,
-        "max_buy": 35000
-    },
-
-    "iPhone 14 Pro Max": {
-        "sell": 50000,
-        "max_buy": 41000
-    },
-
-    "iPhone 15": {
-        "sell": 43000,
-        "max_buy": 35000
-    },
-
-    "iPhone 15 Pro": {
-        "sell": 55000,
-        "max_buy": 45000
-    },
-
-    "iPhone 15 Pro Max": {
-        "sell": 65000,
-        "max_buy": 54000
-    },
-
-    "iPhone 16": {
-        "sell": 55000,
-        "max_buy": 45000
-    },
-
-    "iPhone 16 Pro": {
-        "sell": 65000,
-        "max_buy": 55000
-    },
-
-    "iPhone 16 Pro Max": {
-        "sell": 75000,
-        "max_buy": 63000
-    }
+    "iPhone 11": {"sell": 20000, "max_buy": 15000},
+    "iPhone 11 Pro": {"sell": 25000, "max_buy": 19000},
+    "iPhone 11 Pro Max": {"sell": 28000, "max_buy": 22000},
+    "iPhone 12": {"sell": 24000, "max_buy": 18000},
+    "iPhone 12 Pro": {"sell": 28000, "max_buy": 22000},
+    "iPhone 12 Pro Max": {"sell": 33000, "max_buy": 26000},
+    "iPhone 13": {"sell": 28000, "max_buy": 22000},
+    "iPhone 13 Pro": {"sell": 35000, "max_buy": 28000},
+    "iPhone 13 Pro Max": {"sell": 40000, "max_buy": 32000},
+    "iPhone 14": {"sell": 32000, "max_buy": 25000},
+    "iPhone 14 Pro": {"sell": 43000, "max_buy": 35000},
+    "iPhone 14 Pro Max": {"sell": 50000, "max_buy": 41000},
+    "iPhone 15": {"sell": 43000, "max_buy": 35000},
+    "iPhone 15 Pro": {"sell": 55000, "max_buy": 45000},
+    "iPhone 15 Pro Max": {"sell": 65000, "max_buy": 54000},
+    "iPhone 16": {"sell": 55000, "max_buy": 45000},
+    "iPhone 16 Pro": {"sell": 65000, "max_buy": 55000},
+    "iPhone 16 Pro Max": {"sell": 75000, "max_buy": 63000},
 }
 
 
@@ -123,18 +52,17 @@ MODELS = {
 
 HEADERS = {
     "User-Agent": (
-        "Mozilla/5.0 "
-        "(X11; Linux x86_64) "
+        "Mozilla/5.0 (X11; Linux x86_64) "
         "AppleWebKit/537.36 "
         "(KHTML, like Gecko) "
         "Chrome/131.0 Safari/537.36"
     ),
-
-    "Accept-Language":
-        "ru-RU,ru;q=0.9,en;q=0.8",
-
-    "Accept":
-        "text/html,application/xhtml+xml"
+    "Accept-Language": "ru-RU,ru;q=0.9,en;q=0.8",
+    "Accept": (
+        "text/html,application/xhtml+xml,"
+        "application/xml;q=0.9,*/*;q=0.8"
+    ),
+    "Connection": "keep-alive",
 }
 
 
@@ -161,7 +89,7 @@ def send_telegram(message):
         "chat_id": CHAT_ID,
         "text": message,
         "parse_mode": "HTML",
-        "disable_web_page_preview": False
+        "disable_web_page_preview": False,
     }
 
     try:
@@ -169,34 +97,24 @@ def send_telegram(message):
         response = requests.post(
             url,
             data=data,
-            timeout=20
+            timeout=20,
         )
 
-        print(
-            "Telegram:",
-            response.status_code
-        )
+        print("Telegram:", response.status_code)
 
         if response.status_code != 200:
-
-            print(
-                response.text[:500]
-            )
+            print(response.text[:500])
 
         return response.status_code == 200
 
     except Exception as e:
 
-        print(
-            "Ошибка Telegram:",
-            e
-        )
-
+        print("Ошибка Telegram:", e)
         return False
 
 
 # ============================================================
-# СОХРАНЁННЫЕ ОБЪЯВЛЕНИЯ
+# SEEN
 # ============================================================
 
 def load_seen():
@@ -206,7 +124,7 @@ def load_seen():
         with open(
             SEEN_FILE,
             "r",
-            encoding="utf-8"
+            encoding="utf-8",
         ) as file:
 
             data = json.load(file)
@@ -229,22 +147,19 @@ def save_seen(seen):
         with open(
             SEEN_FILE,
             "w",
-            encoding="utf-8"
+            encoding="utf-8",
         ) as file:
 
             json.dump(
                 data,
                 file,
                 ensure_ascii=False,
-                indent=2
+                indent=2,
             )
 
     except Exception as e:
 
-        print(
-            "Ошибка seen.json:",
-            e
-        )
+        print("Ошибка seen.json:", e)
 
 
 # ============================================================
@@ -256,10 +171,7 @@ def extract_price(text):
     if not text:
         return None
 
-    text = text.replace(
-        "\xa0",
-        " "
-    )
+    text = text.replace("\xa0", " ")
 
     patterns = [
 
@@ -267,7 +179,13 @@ def extract_price(text):
         r"\s*(?:₽|руб\.?|р\b)",
 
         r"(\d{4,6})"
-        r"\s*(?:₽|руб\.?|р\b)"
+        r"\s*(?:₽|руб\.?|р\b)",
+
+        r"(\d{1,3}(?:[\s\u00a0]\d{3})+)"
+        r"\s*$",
+
+        r"(\d{4,6})"
+        r"\s*$",
     ]
 
     for pattern in patterns:
@@ -275,7 +193,7 @@ def extract_price(text):
         matches = re.findall(
             pattern,
             text,
-            flags=re.IGNORECASE
+            flags=re.IGNORECASE,
         )
 
         for value in matches:
@@ -283,7 +201,7 @@ def extract_price(text):
             value = re.sub(
                 r"\s+",
                 "",
-                value
+                value,
             )
 
             try:
@@ -291,7 +209,6 @@ def extract_price(text):
                 price = int(value)
 
                 if 5000 <= price <= 500000:
-
                     return price
 
             except ValueError:
@@ -301,30 +218,32 @@ def extract_price(text):
 
 
 # ============================================================
-# ОПРЕДЕЛЕНИЕ МОДЕЛИ
+# МОДЕЛЬ
 # ============================================================
 
 def detect_model(text):
+
+    if not text:
+        return None
 
     text_lower = text.lower()
 
     models = sorted(
         MODELS.keys(),
         key=len,
-        reverse=True
+        reverse=True,
     )
 
     for model in models:
 
         if model.lower() in text_lower:
-
             return model
 
     return None
 
 
 # ============================================================
-# ОЧИСТКА ССЫЛКИ
+# ССЫЛКА
 # ============================================================
 
 def clean_result_url(url):
@@ -343,7 +262,6 @@ def clean_result_url(url):
         if "uddg" in params:
 
             if params["uddg"]:
-
                 url = params["uddg"][0]
 
     except Exception:
@@ -353,137 +271,155 @@ def clean_result_url(url):
 
 
 # ============================================================
-# ПОИСК
+# РАЗБОР DDG
+# ============================================================
+
+def parse_ddg_results(response, model):
+
+    soup = BeautifulSoup(
+        response.text,
+        "html.parser",
+    )
+
+    results = []
+
+    items = soup.select(".result")
+
+    for item in items:
+
+        link = item.select_one(
+            ".result__a"
+        )
+
+        if not link:
+            continue
+
+        title = link.get_text(
+            " ",
+            strip=True,
+        )
+
+        snippet_element = item.select_one(
+            ".result__snippet"
+        )
+
+        snippet = ""
+
+        if snippet_element:
+
+            snippet = snippet_element.get_text(
+                " ",
+                strip=True,
+            )
+
+        result_url = clean_result_url(
+            link.get("href", "")
+        )
+
+        if "avito.ru" not in result_url.lower():
+            continue
+
+        full_text = (
+            title
+            + " "
+            + snippet
+        )
+
+        price = extract_price(
+            full_text
+        )
+
+        if not price:
+            continue
+
+        detected_model = detect_model(
+            full_text
+        )
+
+        if not detected_model:
+            detected_model = model
+
+        results.append({
+            "model": detected_model,
+            "title": title,
+            "price": price,
+            "url": result_url,
+        })
+
+    return results
+
+
+# ============================================================
+# ПОИСК DDG
 # ============================================================
 
 def search_duckduckgo(model):
 
     query = (
-        f'site:avito.ru/moskva/telefony '
-        f'"{model}" "₽"'
+        f'site:avito.ru '
+        f'"{model}" '
+        f'Москва '
+        f'телефон'
     )
 
-    url = (
-        "https://html.duckduckgo.com/html/?q="
-        + quote_plus(query)
-    )
+    search_urls = [
 
-    try:
+        (
+            "https://html.duckduckgo.com/html/?q="
+            + quote_plus(query)
+        ),
 
-        response = requests.get(
-            url,
-            headers=HEADERS,
-            timeout=25
-        )
+        (
+            "https://lite.duckduckgo.com/lite/?q="
+            + quote_plus(query)
+        ),
+    ]
 
-        print(
-            model,
-            "DDG HTTP:",
-            response.status_code
-        )
+    for url in search_urls:
 
-        if response.status_code != 200:
+        try:
 
-            return []
-
-        soup = BeautifulSoup(
-            response.text,
-            "html.parser"
-        )
-
-        results = []
-
-        items = soup.select(
-            ".result"
-        )
-
-        for item in items:
-
-            link = item.select_one(
-                ".result__a"
+            response = requests.get(
+                url,
+                headers=HEADERS,
+                timeout=25,
             )
 
-            snippet = item.select_one(
-                ".result__snippet"
+            print(
+                model,
+                "DDG HTTP:",
+                response.status_code,
             )
 
-            if not link:
+            if response.status_code != 200:
                 continue
 
-            title = link.get_text(
-                " ",
-                strip=True
+            results = parse_ddg_results(
+                response,
+                model,
             )
 
-            snippet_text = ""
+            if results:
 
-            if snippet:
-
-                snippet_text = snippet.get_text(
-                    " ",
-                    strip=True
+                print(
+                    "   Найдено:",
+                    len(results),
                 )
 
-            full_text = (
-                title
-                + " "
-                + snippet_text
+                return results[:10]
+
+        except Exception as e:
+
+            print(
+                "Ошибка поиска:",
+                e,
             )
 
-            result_url = clean_result_url(
-                link.get("href", "")
-            )
-
-            if "avito.ru" not in result_url:
-                continue
-
-            if "/moskva/" not in result_url:
-                continue
-
-            price = extract_price(
-                full_text
-            )
-
-            if not price:
-                continue
-
-            detected_model = detect_model(
-                full_text
-            )
-
-            if not detected_model:
-
-                detected_model = model
-
-            results.append({
-
-                "model":
-                    detected_model,
-
-                "title":
-                    title,
-
-                "price":
-                    price,
-
-                "url":
-                    result_url
-            })
-
-        return results[:10]
-
-    except Exception as e:
-
-        print(
-            "Ошибка поиска:",
-            e
-        )
-
-        return []
+    return []
 
 
 # ============================================================
-# РАСЧЁТ ЗАЗОРА
+# РАСЧЁТ
 # ============================================================
 
 def calculate_deal(item):
@@ -491,7 +427,6 @@ def calculate_deal(item):
     model = item["model"]
 
     if model not in MODELS:
-
         return None
 
     settings = MODELS[model]
@@ -503,7 +438,6 @@ def calculate_deal(item):
     max_buy = settings["max_buy"]
 
     if buy_price > max_buy:
-
         return None
 
     margin = (
@@ -513,50 +447,30 @@ def calculate_deal(item):
     )
 
     if margin < MIN_MARGIN:
-
         return None
 
     return {
-
-        "model":
-            model,
-
-        "title":
-            item["title"],
-
-        "buy":
-            buy_price,
-
-        "sell":
-            sell_price,
-
-        "reserve":
-            RESERVE,
-
-        "margin":
-            margin,
-
-        "url":
-            item["url"]
+        "model": model,
+        "title": item["title"],
+        "buy": buy_price,
+        "sell": sell_price,
+        "reserve": RESERVE,
+        "margin": margin,
+        "url": item["url"],
     }
 
 
 # ============================================================
-# TELEGRAM-СООБЩЕНИЕ
+# TELEGRAM СООБЩЕНИЕ
 # ============================================================
 
 def make_message(deal):
 
     if deal["margin"] >= 10000:
-
         icon = "🔥"
-
     elif deal["margin"] >= 7000:
-
         icon = "🟢"
-
     else:
-
         icon = "🟡"
 
     title = html.escape(
@@ -565,7 +479,7 @@ def make_message(deal):
 
     url = html.escape(
         deal["url"],
-        quote=True
+        quote=True,
     )
 
     message = (
@@ -599,10 +513,7 @@ def make_message(deal):
         f"</a>"
     )
 
-    return message.replace(
-        ",",
-        " "
-    )
+    return message.replace(",", " ")
 
 
 # ============================================================
@@ -611,40 +522,24 @@ def make_message(deal):
 
 def main():
 
-    print(
-        "=" * 50
-    )
+    print("=" * 50)
 
-    print(
-        "AVITO PHONE MONITOR"
-    )
+    print("AVITO PHONE MONITOR")
 
-    print(
-        "Москва"
-    )
+    print("Москва")
 
-    print(
-        "Поиск через поисковую выдачу"
-    )
+    print("Поиск через поисковую выдачу")
 
-    print(
-        "=" * 50
-    )
+    print("=" * 50)
 
     if not BOT_TOKEN:
 
-        print(
-            "❌ BOT_TOKEN отсутствует"
-        )
-
+        print("❌ BOT_TOKEN отсутствует")
         return
 
     if not CHAT_ID:
 
-        print(
-            "❌ CHAT_ID отсутствует"
-        )
-
+        print("❌ CHAT_ID отсутствует")
         return
 
     # --------------------------------------------------------
@@ -659,25 +554,20 @@ def main():
 
         "📱 iPhone 11–16 Pro Max\n"
 
-        "🔎 Поиск через поисковую выдачу\n"
+        "🔎 Проверяю объявления...\n\n"
 
-        "💰 Проверяю зазор..."
+        "💰 Ищу выгодные варианты."
     )
 
     if not started:
 
-        print(
-            "❌ Telegram не работает"
-        )
-
+        print("❌ Telegram не работает")
         return
 
-    print(
-        "✅ Telegram работает"
-    )
+    print("✅ Telegram работает")
 
     # --------------------------------------------------------
-    # БАЗА
+    # SEEN
     # --------------------------------------------------------
 
     seen = load_seen()
@@ -696,7 +586,7 @@ def main():
 
         print(
             "🔎 Проверяю:",
-            model
+            model,
         )
 
         listings = search_duckduckgo(
@@ -705,7 +595,7 @@ def main():
 
         print(
             "   Результатов:",
-            len(listings)
+            len(listings),
         )
 
         for item in listings:
@@ -715,11 +605,9 @@ def main():
             listing_id = item["url"]
 
             if not listing_id:
-
                 continue
 
             if listing_id in seen:
-
                 continue
 
             seen.add(
@@ -731,7 +619,6 @@ def main():
             )
 
             if not deal:
-
                 continue
 
             profitable += 1
@@ -744,17 +631,22 @@ def main():
 
             print(
                 "Модель:",
-                deal["model"]
+                deal["model"],
             )
 
             print(
                 "Покупка:",
-                deal["buy"]
+                deal["buy"],
+            )
+
+            print(
+                "Продажа:",
+                deal["sell"],
             )
 
             print(
                 "Зазор:",
-                deal["margin"]
+                deal["margin"],
             )
 
             send_telegram(
@@ -779,27 +671,21 @@ def main():
 
     print()
 
-    print(
-        "=" * 50
-    )
+    print("=" * 50)
 
-    print(
-        "ПРОВЕРКА ЗАВЕРШЕНА"
-    )
+    print("ПРОВЕРКА ЗАВЕРШЕНА")
 
     print(
         "Результатов:",
-        total
+        total,
     )
 
     print(
         "Выгодных:",
-        profitable
+        profitable,
     )
 
-    print(
-        "=" * 50
-    )
+    print("=" * 50)
 
     send_telegram(
 
@@ -820,5 +706,4 @@ def main():
 # ============================================================
 
 if __name__ == "__main__":
-
     main()
