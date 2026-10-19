@@ -17,15 +17,16 @@ jobs:
           python-version: "3.12"
 
       - name: Установить библиотеки
-        run: pip install -r requirements.txt
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
       - name: Проверить файлы
         run: |
           ls -la
-          test -f bot.py
-          test -f requirements.txt
+          python -c "import os; print('Файл бот.py:', os.path.isfile('бот.py'))"
 
       - name: Запустить бота
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
-        run: python -u bot.py
+        run: python "бот.py"
