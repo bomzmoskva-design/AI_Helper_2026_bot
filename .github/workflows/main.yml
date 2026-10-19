@@ -21,10 +21,9 @@ jobs:
 
       - name: Проверить файлы
         run: |
-          echo "Проверяем файлы проекта"
           ls -la
-          test -f bot.py || (echo "ОШИБКА: файл bot.py не найден" && exit 1)
-          test -f requirements.txt || (echo "ОШИБКА: файл requirements.txt не найден" && exit 1)
+          test -f bot.py
+          test -f requirements.txt
 
       - name: Запустить бота
         env:
