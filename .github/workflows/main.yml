@@ -21,12 +21,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Проверить файлы
-        run: |
-          ls -la
-          python -c "import os; print('Файл бот.py:', os.path.isfile('бот.py'))"
+      - name: Показать файлы
+        run: ls -la
 
       - name: Запустить бота
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
-        run: python "бот.py"
+        run: python bot.py
