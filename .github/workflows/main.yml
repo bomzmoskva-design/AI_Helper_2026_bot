@@ -19,7 +19,14 @@ jobs:
       - name: Установить библиотеки
         run: pip install -r requirements.txt
 
+      - name: Проверить файлы
+        run: |
+          echo "Проверяем файлы проекта"
+          ls -la
+          test -f bot.py || (echo "ОШИБКА: файл bot.py не найден" && exit 1)
+          test -f requirements.txt || (echo "ОШИБКА: файл requirements.txt не найден" && exit 1)
+
       - name: Запустить бота
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
-        run: python "бот.py"
+        run: python -u bot.py
